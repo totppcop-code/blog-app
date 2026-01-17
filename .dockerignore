@@ -40,7 +40,7 @@ coverage/
 #docker-compose
 docker-compose.yaml
 .git/
-.gitignore
+
 
 #Ssh
 *.pem
