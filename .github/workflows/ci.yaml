@@ -1,0 +1,38 @@
+name: CI/CD Pipeline
+on:
+  push:
+      branches: ["master"]
+jobs:
+  build-and-deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Kind create cluster
+        run: |
+          kind create cluster --name blog-cluster --config kind-config.yaml
+
+      - name: Docker build image
+        run: |
+          docker build -t blog-app-backend:latest ./backend
+          docker build -t blog-app-frontend:latest ./frontend
+
+      - name: Load image
+        run: |
+          kind load docker-image blog-app-backend:latest --name blog-cluster
+          kind load docker-image blog-app-frontend:latest --name blog-cluster
+      
+      - name: Apply k8s
+        run: |
+          kubectl apply -f k8s/
+
+      - name: Wait for postgres
+        run: |
+          kubectl rollout status deployment/postgres-deployment --timeout=60s
+
+      - name: Migrate
+        run: |
+          kubectl delete job migrate --ignore-not-found
+          kubectl apply -f k8s/job/migrate.yaml
+          kubectl wait --for=condition=complete job/migrate 
