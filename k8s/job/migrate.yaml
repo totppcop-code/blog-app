@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: django-migrate
+  name: migrate
 spec:
   backoffLimit: 3
   ttlSecondsAfterFinished: 60
